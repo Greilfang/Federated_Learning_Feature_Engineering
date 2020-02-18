@@ -1,0 +1,6 @@
+# dataset
+*.csv
+# config
+*.idea
+# pyc
+*.pyc

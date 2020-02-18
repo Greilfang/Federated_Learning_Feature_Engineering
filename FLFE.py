@@ -2,15 +2,17 @@ import pandas as pd
 import numpy as np
 import syft as sy
 import torch
-
-from kits.transformations import unaries, binaries
+import os
+from role.server_client import ParameterServer,Client
+from kits.transformations import Unaries, Binaries
+from kits.dataset import read_convert_csvs
 
 
 class Params:
     def __init__(self):
         self.attempts = 5000
         self.epochs = 50
-        self.cli_num = 3
+        self.cli_num = 5
         self.improvement_threshold = 0.01
         self.norm_bound = 10
         self.no_cuda = False
@@ -22,12 +24,29 @@ hook = sy.TorchHook(torch)
 class FederatedLFE:
     def __init__(self):
         self.params = Params()
-        self.workers = list()
+        self.server = ParameterServer()
+        self.clients = list()
         for i in range(self.params.cli_num):
-            self.workers.append(sy.VirtualWorker(hook, id="worker" + str(i)))
+            self.clients.append(Client(i))
 
-    def generate_qsa(self):
-        pass
+
+    def generate_qsa(self,path):
+        datasets = read_convert_csvs(path)
+        index = 0
+        # 分发数据集到各个节点
+        while not len(datasets) == 0:
+            dataset = datasets.pop()
+            self.clients[index].get_dataset(dataset)
+            index = (index+1) % self.params.cli_num
+
+        for client in self.clients:
+            client.generate_qsa()
+
+
+
+
+
+
 
     def train_fedavg_mlp(self):
         pass
