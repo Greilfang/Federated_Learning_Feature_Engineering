@@ -45,7 +45,7 @@ description: 2列每个元素对应相减
 def f_divide(column_1, column_2):
     if np.all(column_2 != 0):
         return column_1 / column_2
-    return []
+    return None
 
 
 class Binaries:

@@ -5,6 +5,14 @@ from sklearn.utils import shuffle
 import numpy as np
 
 
+
+
+useful_tag = np.array([1])
+
+
+useless_tag = np.array([0])
+
+
 def read_convert_csvs(path):
     datasets = []
     csvs = os.listdir(path)
