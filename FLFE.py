@@ -96,11 +96,13 @@ class FederatedLFE:
 
 
 if __name__ == "__main__":
-    bob = sy.VirtualWorker(hook, id="bob")
-    x = torch.tensor([1, 2, 3, 4, 5])
-    y = torch.tensor([1, 1, 1, 1, 1])
-    x_ptr = x.send(bob)
-    y_ptr = y.send(bob)
-    z_ptr = x_ptr + x_ptr
-    z = z_ptr.get()
-    print(z)
+    data_center = FederatedLFE()
+    data_center.generate_qsa("./raw")
+    # bob = sy.VirtualWorker(hook, id="bob")
+    # x = torch.tensor([1, 2, 3, 4, 5])
+    # y = torch.tensor([1, 1, 1, 1, 1])
+    # x_ptr = x.send(bob)
+    # y_ptr = y.send(bob)
+    # z_ptr = x_ptr + x_ptr
+    # z = z_ptr.get()
+    # print(z)

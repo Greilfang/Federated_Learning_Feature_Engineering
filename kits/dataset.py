@@ -24,7 +24,7 @@ def read_convert_csvs(path):
         dataset = {
             'name':csv[:-4],
             'data':csv_frame.values[:,:-1],
-            'target':csv_frame.values[:,-1],
+            'target':csv_frame.values[:,-1].astype("int"),
             'property':csv_frame.columns.values
         }
         print(dataset['name'])
@@ -41,3 +41,8 @@ class QuantileSketchDataset(Dataset):
             dataset = json.load(f)
         for name,func in zip(Binaries.name,Binaries.func):
             pass
+
+
+#
+# if __name__ == "__main__":
+#     read_convert_csvs("../raw")

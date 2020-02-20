@@ -1,4 +1,4 @@
-from sklearn.model_selection import cross_val_score
+ffrom sklearn.model_selection import cross_val_score
 
 from kits.transformations import Unaries, Binaries
 from kits.dataset import useful_tag, useless_tag
@@ -21,26 +21,24 @@ class ParameterServer:
             self.nets[name] = MLP(n_params)
 
 
-
-
 def get_sketch(n_bins, feature, labels):
     quantile_sketch_vector = np.zeros((2, n_bins + 1))
-    supr, infr = max(feature), (feature)
+    supr, infr = max(feature), min(feature)
     blank = supr - infr
     if blank == 0: return None
     for fv, cv in zip(feature, labels):
         idx = int((fv - infr) / blank * n_bins)
-        quantile_sketch_vector[cv, idx] += 1
-    return quantile_sketch_vector[:, :-1]
+        quantile_sketch_vector[cv, idx] = quantile_sketch_vector[cv, idx] + 1
+    return list(quantile_sketch_vector[:, :-1].flatten())
 
 
 def modify_dataset(dataset, col_rand_ind, feature):
-    dataset[:, col_rand_ind] = 0
-    dataset[:, col_rand_ind[0]] = feature
+    dataset['data'][:, col_rand_ind] = 0
+    dataset['data'][:, col_rand_ind[0]] = feature
 
 
 def reverse_dataset(dataset, col_rand_ind, feature):
-    dataset[:, col_rand_ind] = feature
+    dataset['data'][:, col_rand_ind] = feature
 
 
 class Client:
@@ -67,7 +65,8 @@ class Client:
         estimated_classifier = RandomForestClassifier(n_estimators=self.params.n_trees)
         for attempt in range(attempts):
             col_rand_ind = np.arange(dataset['data'].shape[1])
-            col_rand_ind = np.random.shuffle(col_rand_ind)[0:2]
+            np.random.shuffle(col_rand_ind)
+            col_rand_ind = col_rand_ind[0:2]
             features = dataset['data'][:, col_rand_ind]
             f1, f2 = features[:, 0], features[:, 1]
             labels = dataset['target']
@@ -115,15 +114,18 @@ class Client:
     def generate_qsa(self):
         bench_classfier = RandomForestClassifier(n_estimators=self.params.n_trees)
         for dataset in self.datasets:
+            print('dataset_name:',dataset['name'])
             col_num = dataset['data'].shape[1]
             u_attempts, b_attempts = Client.trans_per_capita_set(col_num)
             bench_score = cross_val_score(bench_classfier, dataset['data'], dataset['target'], cv=5,
                                           scoring='f1').mean()
             self.get_binary_num_qsa(b_attempts, dataset, bench_score)
             self.get_unary_num_qsa(u_attempts, dataset, bench_score)
+        for t_name, t_set in self.qsa_set.items():
+            t_set['data'] = np.array(t_set['data'])
 
-# if __name__ == "__main__":
-#     a = np.array([[1,2],[3,4]])
-#     print(a)
-#     a[:,1]=0
-#     print(a)
+
+if __name__ == "__main__":
+    a = np.array([[1,2,3],[4,5,6],[7,8,9]])
+    a[:,[2,1]]=0
+    print(a)
