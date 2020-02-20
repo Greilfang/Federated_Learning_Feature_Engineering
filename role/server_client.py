@@ -3,6 +3,7 @@ from sklearn.model_selection import cross_val_score
 from kits.transformations import Unaries, Binaries
 from kits.dataset import useful_tag, useless_tag
 from sklearn.ensemble import RandomForestClassifier
+from role.net import MLP
 import syft as sy
 import numpy as np
 import torch
@@ -11,8 +12,9 @@ hook = sy.TorchHook(torch)
 
 
 class ParameterServer:
-    def __init__(self):
+    def __init__(self, n_params):
         self.worker = sy.VirtualWorker(hook, id="parameter_server")
+        self.neural_network = MLP(n_params)
 
 
 def get_sketch(n_bins, feature, labels):
@@ -36,7 +38,6 @@ def reverse_dataset(dataset, col_rand_ind, feature):
 
 
 class Client:
-
     @staticmethod
     def trans_per_capita_set(col_num):
         return col_num * 2, col_num * (col_num - 1)

@@ -16,11 +16,20 @@ class Params:
         self.norm_bound = 10
         self.no_cuda = False
 
+
 class ClientParams:
     def __init__(self):
         self.threshold = 0.01
         self.n_trees = 10
         self.n_bins = 400
+
+
+class NetParams:
+    def __init__(self):
+        self.size = 400
+        self.n_cls = 2
+        self.n_cores = 256
+
 
 hook = sy.TorchHook(torch)
 
@@ -28,7 +37,7 @@ hook = sy.TorchHook(torch)
 class FederatedLFE:
     def __init__(self):
         self.params = Params()
-        self.server = ParameterServer()
+        self.server = ParameterServer(NetParams())
         self.clients = list()
         for i in range(self.params.cli_num):
             self.clients.append(Client(i, ClientParams()))
@@ -46,6 +55,7 @@ class FederatedLFE:
             client.generate_qsa()
 
     def train_fedavg_mlp(self):
+        # 联邦训练mlp
         pass
 
     def learn_feature_engineering(self):
