@@ -3,9 +3,10 @@ import pandas as pd
 import random
 from sklearn.utils import shuffle
 import numpy as np
+from torch.utils.data import Dataset, DataLoader
+import json
 
-
-
+from kits.transformations import Binaries,Unaries
 
 useful_tag = np.array([1])
 
@@ -32,6 +33,11 @@ def read_convert_csvs(path):
         datasets.append(dataset)
     return datasets
 
-#
-# if __name__ == "__main__":
-#     read_convert_csvs("../raw")
+
+class QuantileSketchDataset(Dataset):
+    def __init__(self,json_path,transform = None):
+        # 把数据集读取出来
+        with open(json_path, 'r') as f:
+            dataset = json.load(f)
+        for name,func in zip(Binaries.name,Binaries.func):
+            pass

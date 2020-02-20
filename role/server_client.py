@@ -14,12 +14,18 @@ hook = sy.TorchHook(torch)
 class ParameterServer:
     def __init__(self, n_params):
         self.worker = sy.VirtualWorker(hook, id="parameter_server")
-        self.neural_network = MLP(n_params)
+        self.nets = dict()
+        for name in Binaries.name:
+            self.nets[name] = MLP(n_params)
+        for name in Unaries.name:
+            self.nets[name] = MLP(n_params)
+
+
 
 
 def get_sketch(n_bins, feature, labels):
     quantile_sketch_vector = np.zeros((2, n_bins + 1))
-    supr, infr = max(feature), min(feature)
+    supr, infr = max(feature), (feature)
     blank = supr - infr
     if blank == 0: return None
     for fv, cv in zip(feature, labels):

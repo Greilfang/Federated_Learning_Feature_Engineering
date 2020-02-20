@@ -2,18 +2,21 @@ import pandas as pd
 import numpy as np
 import syft as sy
 import torch
+import torch.utils.data
 import os
 from role.server_client import ParameterServer, Client
 from kits.transformations import Unaries, Binaries
-from kits.dataset import read_convert_csvs
+from kits.dataset import read_convert_csvs, QuantileSketchDataset
+from torch.utils.data import DataLoader, TensorDataset
 
 
 class Params:
     def __init__(self):
         self.attempts = 5000
-        self.epochs = 50
+        self.epochs = 10
         self.cli_num = 5
         self.norm_bound = 10
+        self.batch_size = 32
         self.no_cuda = False
 
 
@@ -55,8 +58,35 @@ class FederatedLFE:
             client.generate_qsa()
 
     def train_fedavg_mlp(self):
-        # 联邦训练mlp
-        pass
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        if torch.cuda.device_count() > 1:
+            print("Totally use ", torch.cuda.device_count(), "GPUs")
+            self.server.net = torch.nn.DataParallel(self.server.net)
+
+        # 读取数据集
+        json_path = "demo"
+        quantile_sets = QuantileSketchDataset(json_path)
+        for name in Unaries.name:
+            self.server.nets[name].to(device)
+            quantile_set = quantile_sets[name]
+            tensor_quantile_set = TensorDataset(quantile_set['data'], quantile_set['target'])
+            loader = DataLoader(
+                dataset=quantile_set,
+                batch_size=self.params.batch_size,
+                shuffle=True,
+                num_workers=2
+            )
+            optimizer = torch.optim.SGD(self.server.nets[name].parameters(), lr=0.01, weight_decay=0.001)
+            loss_func = torch.nn.CrossEntropyLoss().cuda()
+
+            for epoch in range(self.params.epochs):
+                for step, (batch_x, batch_y) in enumerate(loader):
+                    pred_y = self.server.nets[name](batch_x)
+                    loss = loss_func(pred_y, batch_y)
+                    print("step {}".format(step), "loss {}".format(loss))
+                    optimizer.zero_grad()
+                    loss.backward()
+                    optimizer.step()
 
     def learn_feature_engineering(self):
         pass
