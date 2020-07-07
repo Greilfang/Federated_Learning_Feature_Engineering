@@ -1,0 +1,3 @@
+# Federated_Learning_Feature_Engineering
+Codes for Federated_Learning_Feature_Engineering
+Haven't implemented comparsion experiement with Homomorphic Encryption.
